@@ -1,147 +1,58 @@
 package com.yevseienko;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.InvalidPathException;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Console {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        Dir dir = new Dir("dir");
-        Cd cd = new Cd("cd");
-        while (true) {
-            System.out.printf("%s>", ConsolePath.get().toString());
-            String line = sc.nextLine();
+	public static void main(String[] args) {
+	    // test implementation
+		final Scanner sc = new Scanner(System.in);
+		final Dir dir = new Dir();
+        final Cd cd = new Cd();
+        final Pwd pwd = new Pwd();
+        final Cat cat = new Cat();
 
-            if (line.startsWith("dir")) {
-                dir.execute();
-            }
-            else if(line.startsWith("cd")){
-                //cd.execute(line.);
-            }
+        final ArrayList<String> arguments = new ArrayList<>();
+        final String regex = "(\".+\"|\\S+)";
+        final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
+		Result result = null;
+		while (true) {
+            arguments.clear();
+			System.out.printf("%s>", ConsolePath.get().toString());
 
-        }
+			final String line = sc.nextLine();
+			final Matcher matcher = pattern.matcher(line);
 
-    }
-}
+			if (matcher.find()) {
+				String match = matcher.group(0);
+				if (match.equalsIgnoreCase("exit")) {
+					break;
+				} else if (match.equalsIgnoreCase("dir")) {
+					result = dir.execute();
+				} else if (matcher.group(0).equalsIgnoreCase("cd")) {
+					findArgs(matcher, arguments);
+					result = cd.execute(arguments.toArray(String[]::new));
+				} else if (match.equalsIgnoreCase("pwd")) {
+					result = pwd.execute();
+				} else if (match.equalsIgnoreCase("cat")) {
+					findArgs(matcher, arguments);
+					result = cat.execute(arguments.toArray(String[]::new));
+				}
 
-/*enum Commands {
-    Dir(new Dir());
+				if (Objects.requireNonNull(result).isPrint()) {
+					System.out.println(result.getReply());
+				}
+			}
+		}
+	}
 
-    Command command;
-
-    Commands(Command command) {
-        this.command = command;
-    }
-}*/
-
-
-abstract class Command {
-    private String name;
-
-    public Command(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    abstract public Result execute(String... args);
-}
-
-class Result {
-    private boolean print;
-    private String reply;
-
-    public Result(boolean print, String reply) {
-        this.print = print;
-        this.reply = reply;
-    }
-
-    public boolean isPrint() {
-        return print;
-    }
-
-    public String getReply() {
-        return reply;
-    }
-}
-
-class ConsolePath {
-    private static ConsolePath cPath;
-    private Path path;
-
-    private ConsolePath() {
-        try {
-            path = Paths.get(".").toRealPath(LinkOption.NOFOLLOW_LINKS);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static Path get() {
-        if (cPath == null) {
-            cPath = new ConsolePath();
-        }
-        return cPath.path;
-    }
-
-    public static void move(Path newPath) {
-        cPath.path = newPath;
-    }
-}
-
-class Dir extends Command {
-    public Dir(String name) {
-        super(name);
-    }
-
-    @Override
-    public Result execute(String... args) {
-        StringBuilder result = new StringBuilder();
-        File myFolder = new File(ConsolePath.get().toString());
-        File[] files = myFolder.listFiles();
-        Arrays.stream(files).forEach(f -> result.append(f.getName()).append(" "));
-        return new Result(true, result.toString());
-    }
-}
-
-class Cd extends Command {
-    public Cd(String name) {
-        super(name);
-    }
-
-    @Override
-    public Result execute(String... args) {
-        if (args.length > 0) {
-            String pathString = args[0];
-            Path newPath = null;
-            boolean isAbsolute = false;
-
-            try {
-                if (pathString.contains(":" + File.pathSeparator) || pathString.equals(File.pathSeparator)) {
-                    // :\ - есть указание буквы диска
-                    isAbsolute = true;
-                    newPath = Paths.get(pathString).normalize();
-                } else {
-                    newPath = Paths.get(ConsolePath.get().toString(), pathString).normalize();
-                }
-                if (!newPath.toFile().exists()) {
-                    return new Result(true, "Файл не найден.");
-                }
-            } catch (InvalidPathException ex) {
-                return new Result(true, "Системе не удается найти указанный путь.");
-            } catch (Exception c) {
-                return new Result(true, "Откзано в доступе.");
-            }
-            ConsolePath.move(newPath);
-        }
-        return new Result(false, null);
-    }
+	private static void findArgs(Matcher matcher, Collection<String> arguments) {
+		while (matcher.find()) {
+			arguments.add(matcher.group(0).replace("\"", ""));
+		}
+	}
 }
