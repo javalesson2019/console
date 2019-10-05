@@ -6,6 +6,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Cd implements Command {
+	private static Cd cd;
+
+	private Cd() {
+	}
+
+	public static Cd get() {
+		if (cd == null) {
+			cd = new Cd();
+		}
+		return cd;
+	}
+
 	@Override
 	public Result execute(String... args) {
 		if (args.length > 0) {

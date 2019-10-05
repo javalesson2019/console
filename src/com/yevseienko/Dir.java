@@ -9,6 +9,17 @@ import java.util.Objects;
 
 public class Dir implements Command {
 	private static SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy  HH:mm");
+	private static Dir dir;
+
+	private Dir() {
+	}
+
+	public static Dir get() {
+		if (dir == null) {
+			dir = new Dir();
+		}
+		return dir;
+	}
 
 	@Override
 	public Result execute(String... args) {
