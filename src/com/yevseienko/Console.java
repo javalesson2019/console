@@ -59,7 +59,7 @@ public class Console {
 					result = new Result(true, String.format("\"%s\" %s", match, doNotFindCommandReply));
 				}
 
-				if (Objects.requireNonNull(result).isPrint()) {
+				if (result != null && result.isPrint()) {
 					System.out.println(result.getReply());
 				}
 			}
@@ -72,3 +72,4 @@ public class Console {
 		}
 	}
 }
+
