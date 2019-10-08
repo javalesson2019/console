@@ -1,6 +1,5 @@
 package com.yevseienko.commands;
 
-import com.yevseienko.Console;
 import com.yevseienko.ConsolePath;
 import com.yevseienko.Result;
 
@@ -9,10 +8,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
-import java.util.Objects;
 
 public class Dir implements Command {
-	private static SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy  HH:mm"); // TODO: м.б. final
+	private final static SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy  HH:mm");
 	private static Dir dir;
 
 	private Dir() {
@@ -28,27 +26,39 @@ public class Dir implements Command {
 	@Override
 	public Result execute(String... args) {
 		StringBuilder result = new StringBuilder();
-		File[] files = ConsolePath.get().toFile().listFiles(); // TODO: Files.list()
-		for (File file : Objects.requireNonNull(files)) {
-			try {
-				BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-				result.append(df.format(attr.lastModifiedTime().toMillis())).append("    ");
-				result.append(attr.isDirectory() ? "<DIR>  " : "       ");
-				if (!attr.isDirectory()) {
-					String separator = "\t\t\t";
-					if (attr.size() > 999) { // TODO: Магические числа?
-						separator = separator.substring(1);
+		File[] files;
+		files = ConsolePath.get().toFile().listFiles(); // TODO: Files.list()
+		if (files != null) {
+			for (File file : files) {
+				try {
+					BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+					result.append(df.format(attr.lastModifiedTime().toMillis())).append("    ");
+					result.append(attr.isDirectory() ? "<DIR>  " : "       ");
+					if (!attr.isDirectory()) {
+						String separator = "\t\t\t";
+
+						// числа для форматирования вывода
+						final int firstTab = 999;
+						// если размер файла > 999 убираю одну табуляцию
+						final int secondTab = 9_999_999;
+						// если размер файла > 9 999 999 убираю вторую табуляцию
+
+						if (attr.size() > firstTab) {
+							separator = separator.substring(1);
+						}
+						if (attr.size() > secondTab) {
+							separator = separator.substring(1);
+						}
+						result.append(attr.size()).append(separator);
+					} else {
+						result.append("\t\t\t");
 					}
-					if (attr.size() > 9_999_999) { // TODO: Магические числа?
-						separator = separator.substring(1);
-					}
-					result.append(attr.size()).append(separator);
-				} else {
-					result.append("\t\t\t");
+					result.append(file.getName()).append("\n");
+				} catch (IOException ignore) {
 				}
-				result.append(file.getName()).append("\n");
-			} catch (IOException ignore) {
 			}
+		} else {
+			result.append("Ошибка при получении списка файлов.");
 		}
 		return new Result(true, result.toString());
 	}

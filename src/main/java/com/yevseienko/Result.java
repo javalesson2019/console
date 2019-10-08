@@ -1,8 +1,8 @@
 package com.yevseienko;
 
 public class Result {
-	private boolean print; // TODO: м.б. final
-	private String reply; // TODO: м.б. final
+	private final boolean print;
+	private final String reply;
 
 	public Result(boolean print, String reply) {
 		this.print = print;

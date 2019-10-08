@@ -18,8 +18,6 @@ import java.util.Map;
 
 public class Download implements Runnable {
 	private static final Object _sLOCK = new Object();
-	private static int _sId;
-	private int _id; // TODO: не используемая переменная
 	private URI _uri;
 	private String _fileName;
 	private String _extFileName;
@@ -35,7 +33,6 @@ public class Download implements Runnable {
 	}
 
 	public Download(URI uri, String saveDirectory) {
-		_id = ++_sId;
 		this._uri = uri;
 		_saveDirectory = saveDirectory;
 		//_percent = new AtomicInteger();
@@ -80,7 +77,7 @@ public class Download implements Runnable {
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(_uri).GET().build();
 
-		Path file = null; // TODO: лишняя инииализация
+		Path file;
 		synchronized (_sLOCK) {
 			int iterator = 0;
 			do {
@@ -118,10 +115,9 @@ public class Download implements Runnable {
 
 	private boolean getFileInfo(URI path) throws IOException, InterruptedException {
 		String fragment = path.getPath();
-		if(fragment.contains("/")){
+		if (fragment.contains("/")) {
 			_fileName = fragment.substring(fragment.lastIndexOf('/') + 1);
-		}
-		else{
+		} else {
 			_fileName = fragment;
 		}
 		_fileName = fragment.substring(fragment.lastIndexOf('/') + 1);
@@ -130,11 +126,11 @@ public class Download implements Runnable {
 			this._extFileName = _fileName.substring(idx + 1);
 			this._fileName = _fileName.substring(0, idx);
 		}
-		HttpRequest headerRequest = null; // TODO: лишняя инииализация
+		HttpRequest headerRequest;
 		try {
 			headerRequest = HttpRequest.newBuilder()
 					.uri(path).method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
-		}catch (Exception ignored){
+		} catch (Exception ignored) {
 			System.out.println("Ссылка имеет неверный формат или файл недоступен");
 			return false;
 		}
@@ -173,7 +169,7 @@ public class Download implements Runnable {
 	@Override
 	public void run() {
 		try {
-			if(getFileInfo(_uri)){
+			if (getFileInfo(_uri)) {
 				download();
 			}
 		} catch (IOException | InterruptedException e) {

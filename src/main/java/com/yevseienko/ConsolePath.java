@@ -10,8 +10,8 @@ import java.util.concurrent.Executors;
 public class ConsolePath {
 	private static ConsolePath cPath;
 	private Path path;
-	public static String ASYNC_ARGUMENT = "&"; // TODO: м.б. final
-	public static ExecutorService EXECUTOR = Executors.newCachedThreadPool(); // TODO: м.б. final
+	public final static String ASYNC_ARGUMENT = "&";
+	public final static ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
 	private ConsolePath() {
 		try {

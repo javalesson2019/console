@@ -25,7 +25,7 @@ public class Cd implements Command {
 	public Result execute(String... args) {
 		if (args.length > 0) {
 			String pathString = args[0];
-			Path newPath = null; // TODO: лишняя инииализация
+			Path newPath;
 			try {
 				if (pathString.contains(":" + File.separator) || pathString.equals("/") || pathString.equals("\\")) {
 					// :\ - есть указание буквы диска

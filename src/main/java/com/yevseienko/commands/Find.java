@@ -5,13 +5,16 @@ import com.yevseienko.Result;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 
 public class Find implements Command, Runnable {
 	private static Find find;
-	private static File[] disks; // TODO: м.б. final
+	private final static File[] disks;
 	private String findMe;
 	private boolean isInterrupted;
 	private static final Object locker = new Object();
@@ -24,7 +27,7 @@ public class Find implements Command, Runnable {
 		disks = File.listRoots();
 	}
 
-	public void interrupt(){
+	public void interrupt() {
 		isInterrupted = true;
 	}
 
@@ -37,22 +40,19 @@ public class Find implements Command, Runnable {
 
 	@Override
 	public Result execute(String... args) {
-		if(args.length > 0)
-		{
+		if (args.length > 0) {
 			findMe = args[0];
 			boolean async = Arrays.stream(args).anyMatch(s -> s.equals(ConsolePath.ASYNC_ARGUMENT));
 			result = new StringBuilder();
-			if(async){
+			if (async) {
 				ConsolePath.EXECUTOR.execute(this);
 				return new Result(false, null);
-			}
-			else{
+			} else {
 				System.out.println("Начался поиск файла..");
 				findFile();
 				return new Result(true, result.toString());
 			}
-		}
-		else{
+		} else {
 			return new Result(true, "Укажите файл который нужно искать.");
 		}
 	}
@@ -78,9 +78,8 @@ public class Find implements Command, Runnable {
 						if (isInterrupted) {
 							return FileVisitResult.TERMINATE;
 						}
-						//todo check
-						if(file.getFileName().toString().contains(findMe)){
-							synchronized (locker){
+						if (file.getFileName().toString().contains(findMe)) {
+							synchronized (locker) {
 								result.append(file.toRealPath().toString()).append("\r\n");
 							}
 						}
